@@ -1,0 +1,11 @@
+name: rick-morty-api
+namespace: rick-morty
+
+image:
+  repo: localhost/rick-and-morty-api
+  tag: latest
+  pullPolicy: Never
+
+replicas: 1
+port: 80
+targetPort: 5000

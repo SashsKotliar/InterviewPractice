@@ -1,0 +1,6 @@
+/*
+!.gitignore
+!Containerfile
+!/yamls/
+!/app/
+!/helm/
