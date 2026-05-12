@@ -1,0 +1,51 @@
+name: CI/CD Pipeline
+
+# This triggers the workflow whenever you push to the main branch
+on:
+  push:
+    branches: [ main ]
+
+jobs:
+  build-and-deploy:
+    runs-on: ubuntu-latest
+    
+    steps:
+      - name: 1. Checkout code
+        uses: actions/checkout@v4
+
+      - name: 2. Create k8s Kind Cluster
+        uses: helm/kind-action@v1.8.0
+        # This action automatically installs KinD and spins up a fresh cluster
+
+      - name: 3. Build Docker image
+        # We build the image locally on the GitHub Runner
+        run: docker build -t localhost/rick-and-morty-api:latest .
+
+      - name: 4. Load image into Kind cluster
+        # Just like Minikube, KinD needs the image pushed into its internal cache
+        run: kind load docker-image localhost/rick-and-morty-api:latest --name chart-testing
+
+      - name: 5. Deploy Helm Chart
+        # We use Helm to deploy to the fresh cluster, creating the namespace on the fly
+        run: |
+          helm install rick-morty-release ./Helm/rick-morty-api -n rick-morty --create-namespace
+
+      - name: 6. Wait for Pods to be ready
+        # Kubernetes takes a few seconds to start pods. We must wait before testing!
+        run: |
+          kubectl wait --namespace rick-morty \
+            --for=condition=ready pod \
+            --selector=app=rick-morty-api \
+            --timeout=120s
+
+      - name: 7. Run Tests against endpoints
+        # We port-forward in the background (&) and then use curl to test the endpoints
+        run: |
+          kubectl port-forward svc/rick-morty-release-service 5000:80 -n rick-morty &
+          sleep 5 # Wait a few seconds for the port-forward tunnel to open
+          
+          echo "Testing /healthcheck endpoint..."
+          curl --fail http://localhost:5000/healthcheck
+          
+          echo -e "\n\nTesting /api/characters/earth-humans endpoint..."
+          curl --fail http://localhost:5000/api/characters/earth-humans
