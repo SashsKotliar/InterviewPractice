@@ -28,7 +28,7 @@ jobs:
       - name: 5. Deploy Helm Chart
         # We use Helm to deploy to the fresh cluster, creating the namespace on the fly
         run: |
-          helm install rick-morty-release ./Helm/rick-morty-api -n rick-morty --create-namespace
+          helm install rick-morty-release ./helm/rick-morty-api -n rick-morty --create-namespace
 
       - name: 6. Wait for Pods to be ready
         # Kubernetes takes a few seconds to start pods. We must wait before testing!
