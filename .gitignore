@@ -6,3 +6,4 @@
 !/app/
 !/helm/
 !/.github/
+!*.md
