@@ -42,7 +42,7 @@ jobs:
         # We port-forward in the background (&) and then use curl to test the endpoints
         run: |
           kubectl get svc -n rick-morty
-          kubectl port-forward svc/rick-morty-release-service 5000:80 -n rick-morty &
+          kubectl port-forward svc/rick-morty-api 5000:80 -n rick-morty &
           sleep 5 # Wait a few seconds for the port-forward tunnel to open
           
           echo "Testing /healthcheck endpoint..."
